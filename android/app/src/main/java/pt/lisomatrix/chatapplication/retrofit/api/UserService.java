@@ -9,6 +9,7 @@ import io.reactivex.Single;
 import pt.lisomatrix.chatapplication.model.Token;
 import pt.lisomatrix.chatapplication.model.User;
 import pt.lisomatrix.chatapplication.network.Authenticate;
+import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
@@ -24,10 +25,10 @@ public interface UserService {
     Flowable<User> getUser(@Path("id") int id, @Header("authorization") String token);
 
     @POST("/register")
-    Completable register(@Body User user);
+    Maybe<Response<Void>> register(@Body User user);
 
     @POST("/login")
-    Maybe<Token> authenticate(@Body Authenticate authenticate);
+    Maybe<Response<Token>> authenticate(@Body Authenticate authenticate);
 
     @GET("me")
     Single<User> getMe(@Header("authorization") String token);

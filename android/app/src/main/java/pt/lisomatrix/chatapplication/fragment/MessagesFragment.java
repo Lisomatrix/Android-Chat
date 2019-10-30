@@ -10,6 +10,9 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +42,8 @@ public class MessagesFragment extends Fragment implements SocketServiceCallbacks
 
     private EditText mMessageEditText;
     private ImageButton mSendImageButton;
+
+    private boolean isTyping = false;
 
     public static MessagesFragment newInstance(User user, String mThisUserId) {
         return new MessagesFragment(user, mThisUserId);
@@ -92,10 +97,42 @@ public class MessagesFragment extends Fragment implements SocketServiceCallbacks
         });
 
         ((MessagesActivity) getActivity()).setCallbacks(this::addMessage);
+
+        // Check when input text is changed
+        mMessageEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Send to the server typing notification
+                ((MessagesActivity) getActivity()).isTyping(true);
+                isTyping = true;
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                isTyping = false;
+                (new Handler()).postDelayed(MessagesFragment.this::hasEndedTyping, 5000);
+            }
+        });
     }
 
     @Override
     public void addMessage(Message message) {
         mMessageListAdapter.addMessage(message);
+    }
+
+    /***
+     * Check if user has stopped typing
+     */
+    private void hasEndedTyping() {
+        if (isTyping) {
+            (new Handler()).postDelayed(MessagesFragment.this::hasEndedTyping, 5000);
+        } else {
+            ((MessagesActivity) getActivity()).isTyping(false);
+        }
     }
 }

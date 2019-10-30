@@ -35,7 +35,12 @@ public class UsersFragmentsViewModel extends ViewModel {
         mUserService = RetrofitSingleton.getInstance().create(UserService.class);
 
         mSharedPreferencesHelper = new SharedPreferencesHelper(context.getApplicationContext());
-        token = mSharedPreferencesHelper.getToken();
+
+        try {
+            token = mSharedPreferencesHelper.getToken();
+        } catch (Exception ex) {
+
+        }
 
         if (usersSubject.getValue() == null) {
             getUsersFromDatabase();

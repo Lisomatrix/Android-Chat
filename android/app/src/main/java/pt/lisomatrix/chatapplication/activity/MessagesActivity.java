@@ -6,9 +6,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -19,7 +16,6 @@ import androidx.lifecycle.ViewModelProviders;
 import android.os.IBinder;
 
 import pt.lisomatrix.chatapplication.R;
-import pt.lisomatrix.chatapplication.fragment.MessagesFragment;
 import pt.lisomatrix.chatapplication.fragment.UsersFragments;
 import pt.lisomatrix.chatapplication.helper.SharedPreferencesHelper;
 import pt.lisomatrix.chatapplication.model.Message;
@@ -100,7 +96,11 @@ public class MessagesActivity extends AppCompatActivity {
      * @param message
      */
     public void sendMessage(Message message) {
-        mSocketService.sendEvent(message);
+        mSocketService.sendMessageEvent(message);
+    }
+
+    public void isTyping(boolean typing) {
+        mSocketService.sendTypingEvent(typing);
     }
 
     @Override
@@ -108,9 +108,13 @@ public class MessagesActivity extends AppCompatActivity {
         // Check if use has token, if not send user back to login screen
         mSharedPreferencesHelper = new SharedPreferencesHelper(this);
 
-        String token = mSharedPreferencesHelper.getToken();
+        try {
+            String token = mSharedPreferencesHelper.getToken();
 
-        if (token.equals("")) {
+            if (token.equals("")) {
+                LoginActivity.startActivity(this);
+            }
+        } catch (Exception ex) {
             LoginActivity.startActivity(this);
         }
 
@@ -129,12 +133,16 @@ public class MessagesActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // Bind Service
-        Intent startService = new Intent(this, SocketService.class);
-        startService.putExtra("token", mSharedPreferencesHelper.getToken());
+        try {
+            // Bind Service
+            Intent startService = new Intent(this, SocketService.class);
+            startService.putExtra("token", mSharedPreferencesHelper.getToken());
 
-        bindService(startService, mServiceConnection, Context.BIND_AUTO_CREATE);
-        startService(new Intent(this, SocketService.class));
+            bindService(startService, mServiceConnection, Context.BIND_AUTO_CREATE);
+            startService(new Intent(this, SocketService.class));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override

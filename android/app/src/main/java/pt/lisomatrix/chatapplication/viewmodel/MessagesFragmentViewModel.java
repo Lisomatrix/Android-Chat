@@ -63,7 +63,11 @@ public class MessagesFragmentViewModel extends ViewModel {
         mMessagesService = RetrofitSingleton.getInstance().create(MessagesService.class);
         mSharedPreferencesHelper = new SharedPreferencesHelper(mContext);
 
-        token = mSharedPreferencesHelper.getToken();
+        try {
+            token = mSharedPreferencesHelper.getToken();
+        } catch (Exception ex) {
+
+        }
 
         if (!hasFetchedMessages) {
             getMessagesFromNetwork();

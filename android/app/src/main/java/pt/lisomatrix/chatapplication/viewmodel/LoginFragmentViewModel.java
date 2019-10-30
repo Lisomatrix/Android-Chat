@@ -10,6 +10,7 @@ import pt.lisomatrix.chatapplication.model.Token;
 import pt.lisomatrix.chatapplication.network.Authenticate;
 import pt.lisomatrix.chatapplication.retrofit.RetrofitSingleton;
 import pt.lisomatrix.chatapplication.retrofit.api.UserService;
+import retrofit2.Response;
 
 public class LoginFragmentViewModel extends ViewModel {
 
@@ -21,7 +22,7 @@ public class LoginFragmentViewModel extends ViewModel {
         mUserService = RetrofitSingleton.getInstance().create(UserService.class);
     }
 
-    public Maybe<Token> authenticate(Authenticate authenticate) {
+    public Maybe<Response<Token>> authenticate(Authenticate authenticate) {
         return mUserService.authenticate(authenticate)
                 .subscribeOn(Schedulers.io());
     }

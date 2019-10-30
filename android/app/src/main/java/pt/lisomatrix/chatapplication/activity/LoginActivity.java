@@ -36,10 +36,14 @@ public class LoginActivity extends AppCompatActivity {
         // Check if has a token
         mSharedPreferencesHelper = new SharedPreferencesHelper(this);
 
-        String token = mSharedPreferencesHelper.getToken();
+        try {
+            String token = mSharedPreferencesHelper.getToken();
 
-        // If a token is found then go to messages activity
-        if (!token.equals("")) {
+            // If a token is found then go to messages activity
+            if (!token.equals("")) {
+                MessagesActivity.startActivity(this);
+            }
+        } catch (Exception ex) {
             MessagesActivity.startActivity(this);
         }
 

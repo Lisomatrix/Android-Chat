@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -17,6 +18,8 @@ import static pt.lisomatrix.chatapplication.constant.APIConstants.API_URL;
 public class SocketService extends Service {
 
     private static final String NEW_MESSAGE = "new_message";
+    private static final String IS_TYPING = "is_typing";
+    private static final String NOT_TYPING = "not_typing";
 
     /**
      *  Token for user authentication
@@ -62,8 +65,16 @@ public class SocketService extends Service {
      *
      * @param message
      */
-    public void sendEvent(Message message) {
+    public void sendMessageEvent(Message message) {
         mSocket.emit(NEW_MESSAGE, gson.toJson(message));
+    }
+
+    public void sendTypingEvent(boolean isTyping) {
+        if (isTyping) {
+            mSocket.emit(IS_TYPING);
+        } else {
+            mSocket.emit(NOT_TYPING);
+        }
     }
 
     /**
@@ -82,11 +93,20 @@ public class SocketService extends Service {
             mSocket.emit("auth", token);
         });
 
+        // On connection event
         mSocket.on(NEW_MESSAGE, args -> {
             if (mSocketServiceCallbacks != null) {
                 String json = args[0].toString();
                 mSocketServiceCallbacks.addMessage(gson.fromJson(json, Message.class));
             }
+        });
+
+        mSocket.on(IS_TYPING, args -> {
+            Log.d("DEBUG", "This user is typing");
+        });
+
+        mSocket.on(NOT_TYPING, args -> {
+            Log.d("DEBUG", "This stoped user is typing");
         });
 
         // Connect

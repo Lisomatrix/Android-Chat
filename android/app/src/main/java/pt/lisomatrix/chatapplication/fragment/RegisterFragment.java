@@ -15,9 +15,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.json.JSONObject;
+
 import pt.lisomatrix.chatapplication.R;
+import pt.lisomatrix.chatapplication.helper.ValidationHelper;
 import pt.lisomatrix.chatapplication.model.User;
 import pt.lisomatrix.chatapplication.viewmodel.RegisterFragmentViewModel;
+import retrofit2.Response;
 
 public class RegisterFragment extends Fragment {
 
@@ -58,19 +62,38 @@ public class RegisterFragment extends Fragment {
     }
 
     private void init() {
-        registerButton.setOnClickListener((view) -> {
-            User user = new User();
-            user.setName(nameEditText.getText().toString());
-            user.setEmail(emailEditText.getText().toString());
-            user.setPassword(passwordEditText.getText().toString());
-
-            mViewModel.register(user);
-        });
-
-        haveAccountButton.setOnClickListener((view) -> showLoginActivity());
+        registerButton.setOnClickListener(this::register);
+        haveAccountButton.setOnClickListener(this::showLoginActivity);
     }
 
-    private void showLoginActivity() {
+    private void register(View view) {
+        if (!validateInputs()) {
+            return;
+        }
+
+        User user = new User();
+        user.setName(nameEditText.getText().toString());
+        user.setEmail(emailEditText.getText().toString());
+        user.setPassword(passwordEditText.getText().toString());
+
+        mViewModel.register(user)
+                .subscribe(this::handleRegisterResponse);
+    }
+
+    private void handleRegisterResponse(Response response) {
+        if (!response.isSuccessful()) {
+            getActivity().runOnUiThread(() -> {
+                try {
+                    JSONObject errorJson = new JSONObject(response.errorBody().string());
+                    emailEditText.setError(errorJson.getString("message"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    private void showLoginActivity(View view) {
         Fragment fragment = new LoginFragment();
 
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
@@ -80,5 +103,38 @@ public class RegisterFragment extends Fragment {
         transaction.addToBackStack(null);
 
         transaction.commit();
+    }
+
+    private boolean validateInputs() {
+        passwordEditText.setError(null);
+        emailEditText.setError(null);
+        nameEditText.setError(null);
+
+        boolean valid = true;
+
+        String emailText = emailEditText.getText().toString();
+
+        if (passwordEditText.getText().toString().trim().equals("")) {
+            passwordEditText.setError("Password field can't be empty!");
+            valid = false;
+        }
+
+
+        if (emailText.trim().equals("")) {
+            emailEditText.setError("Email field can't be empty!");
+            valid = false;
+        }
+
+        if (!ValidationHelper.emailIsValid(emailText)) {
+            emailEditText.setError("Email is invalid!");
+            valid = false;
+        }
+
+        if (nameEditText.getText().toString().trim().equals("")) {
+            nameEditText.setError("Name field can't be empty");
+            valid = false;
+        }
+
+        return valid;
     }
 }
